@@ -1,3 +1,5 @@
+#%%
+
 # Functions and Packages imported
 import os
 import string
@@ -8,63 +10,61 @@ from glob import glob
 from lxml import *
 from collections import Counter
 from xml.etree.ElementTree import XMLParser
-from openpyxl import Workbook
+import csv
 import winsound
 import ntpath
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 
 
 class FrottalaObject:
-    def __init__(frottala, title, composer, sections, phrases):
-        frottala.title = title
-        frottala.composer = composer
-        frottala.sections = sections
-        frottala.phrases = phrases
+    def __init__(self, title, composer, sections, phrases):
+        self.title = title
+        self.composer = composer
+        self.sections = sections
+        self.phrases = phrases
 
-        print(frottala.title, "by", frottala.composer, "has been recorded.")
+        print(self.title, "by", self.composer, "has been recorded.")
 
 class SectionObject:
-    def __init__(section):
-        section.phrases = 0
-        section.measures = 0
-        section.notes = 0
-        section.duration = 0
-        section.syllables = 0
+    def __init__(self):
+        self.phrases = 0
+        self.measures = 0
+        self.notes = 0
+        self.duration = 0
+        self.syllables = 0
 
 class PhraseObject:
-    def __init__(phrase):
-        phrase.measures = 0
-        phrase.notes = 0
-        phrase.duration = 0
-        phrase.syllables = 0
+    def __init__(self):
+        self.measures = 0
+        self.notes = 0
+        self.duration = 0
+        self.syllables = 0
 
 class DataRecorder:
-    tag, attrib, data = None, None, None
+    xmlTag, xmlAttrib, xmlData = None, None, None
 
     def __init__(self):
         self.title, self.composer = None, None
         self.sectionObject = SectionObject()
         self.phraseObject = PhraseObject()
         self.sections, self.phrases = [], []
-        #self.sectionPhraseCount, self.measureCount, self.noteCount, self.durationCount, self.syllableCount = 0, 0, 0, 0, 0
-        #self.sectionData, self.sectionMeasures, self.sectionSyllables, self.sectionNotes, self.sectionDuration = [], [], [], [], []
-        #self.phraseData, self.phraseMeasures, self.phraseSyllables, self.phraseNotes, self.phraseDuration = [], [], [], [], []
         self.completeCheck, self.lyricCheck, self.pitchCheck, self.puncCheck, self.capsCheck = False, False, False, False, False
 
-    def start(self, tag, attrib):
-        self.tag = tag
-        self.attrib = attrib
+    def start(self, xmlTag, xmlAttrib):
+        self.xmlTag = xmlTag
+        self.xmlAttrib = xmlAttrib
 
-    def end(self, tag):
-        self.tag = None
-        self.attrib = None
+    def end(self, xmlTag):
+        self.xmlTag = None
+        self.xmlAttrib = None
 
-    def data(self, data):
-        self.data = data
+    def data(self, xmlData):
+        self.xmlData = xmlData
         if self.completeCheck == False:
-            switchFunction = SwitchFunction(self.tag, self.attrib, self.data)
+            switchFunction = SwitchFunction(self.xmlTag, self.xmlAttrib, self.xmlData)
             switchFunction.FuncSwitch()
         
     def close(self):
@@ -83,22 +83,15 @@ class SwitchFunction:
         elif self.data == ('Petrucci'):
             dataRecorder.composer = self.data
 
-    def MeasureCount(self):
-        if dataRecorder.completeCheck == False:            
-            if self.data == ('dashed'):
-                dataRecorder.sectionObject.measures += 1
-                dataRecorder.phraseObject.measures += 1
-            elif self.data == ('light-heavy'):
-                dataRecorder.sectionObject.measures += 1
-                dataRecorder.phraseObject.measures += 1
-                self.RecordSection()
-                self.RecordPhrase()
-                dataRecorder.completeCheck = True
-            elif self.data != ('dashed') and self.data != ('light-heavy'):
-                dataRecorder.sectionObject.measures += 1
-                dataRecorder.phraseObject.measures += 1
-                self.RecordSection()
-                self.RecordPhrase()
+    def MeasureCount(self):           
+        if self.data == ('dashed'):
+            dataRecorder.sectionObject.measures += 1
+            dataRecorder.phraseObject.measures += 1
+        else:
+            dataRecorder.sectionObject.measures += 1
+            dataRecorder.phraseObject.measures += 1
+            self.RecordSection()
+            self.RecordPhrase()
     
     def LyricSwitch (self):
         dataRecorder.lyricCheck = True
@@ -127,11 +120,18 @@ class SwitchFunction:
 
     def CapsCheck(self):
         if self.data.islower() == False and dataRecorder.puncCheck == True:
-            print(self.data)
+            # print(self.data)
             self.RecordPhrase()
         else:
             dataRecorder.capsCheck = False
             dataRecorder.puncCheck = False
+
+    def CompleteSwitch(self):
+        print(self.attrib)
+        if self.attrib == ("{'id': 'P1'}"):
+            dataRecorder.completeCheck = False
+        elif self.attrib != ("{'id': 'P1'}"):
+            dataRecorder.completeCheck = True
 
 
     def FuncSwitch(self):
@@ -141,7 +141,8 @@ class SwitchFunction:
             'lyric' : self.LyricSwitch,
             'text' : self.SyllableCount,
             'pitch' : self.PitchSwitch,
-            'duration' : self.DurationCount
+            'duration' : self.DurationCount,
+            'part' : self.CompleteSwitch
 
             }
         return switcher.get(self.tag, lambda: "Error: Switch Function - FuncSwitch")()
@@ -155,13 +156,11 @@ class SwitchFunction:
         dataRecorder.phraseObject = PhraseObject()
         dataRecorder.lyricCheck, dataRecorder.pitchCheck, dataRecorder.puncCheck, dataRecorder.capsCheck = False, False, False, False
     
-
 def ProcessCorpus():
     print("Gathering Files")
-    global root, corpusData, dataRecorder, corpCount
-    corpusData = []
+    global dataRecorder
 
-    for file in glob(r'E:/Documents/UNE/HUMS_301/XML Files/MusicXML\*.musicxml'):
+    for file in glob(r'E:/Documents/UNE/HUMS_301/MusicXML\*.musicxml'):
         tree = etree.parse(file)
         root = tree.getroot()
         xmlString = etree.tostring(root, encoding="UTF-8", method='xml')
@@ -169,17 +168,39 @@ def ProcessCorpus():
         parser = XMLParser(target = dataRecorder)
         parser.feed(xmlString)
         parser.close()
-
-          
+        
     # for frottala in somewhere longest data = column amount
     # put in excel using biggest values
 
     print('Corpus procssing compelete!')
 
+def ScatterPlot():
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
 
+    x, y, z = [], [], []
+    d = 0
+    for data in corpusData:
+        p = 0
+        for phrase in corpusData[d].phrases:
+            x.append(d + 1)
+            y.append(p + 1)
+            z.append(corpusData[d].phrases[p].measures)
+            p += 1
+        d += 1
 
+    print(x)
+    ax.scatter(x, y, z, c='r', marker='o')
 
+    ax.set_xlabel('Frottala')
+    ax.set_ylabel('Section')
+    ax.set_zlabel('Syllables')
+
+    plt.show()
+
+global corpusData
+corpusData = []
 ProcessCorpus()
+ScatterPlot()
 
-
-
+#%%
