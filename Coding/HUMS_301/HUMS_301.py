@@ -79,6 +79,7 @@ class SwitchFunction:
 
     def Info(self):
         if self.data != ('Petrucci'):
+            print(self.data)
             dataRecorder.title = self.data
         elif self.data == ('Petrucci'):
             dataRecorder.composer = self.data
@@ -87,7 +88,12 @@ class SwitchFunction:
         if self.data == ('dashed'):
             dataRecorder.sectionObject.measures += 1
             dataRecorder.phraseObject.measures += 1
-        else:
+        elif self.data == ('light-light'):
+            dataRecorder.sectionObject.measures += 1
+            dataRecorder.phraseObject.measures += 1
+            self.RecordSection()
+            self.RecordPhrase()
+        elif self.data == ('light-heavy'):
             dataRecorder.sectionObject.measures += 1
             dataRecorder.phraseObject.measures += 1
             self.RecordSection()
@@ -127,11 +133,12 @@ class SwitchFunction:
             dataRecorder.puncCheck = False
 
     def CompleteSwitch(self):
-        print(self.attrib)
-        if self.attrib == ("{'id': 'P1'}"):
+        if str(self.attrib) == ("{'id': 'P1'}"):
+            #print(self.attrib, "YES!")
             dataRecorder.completeCheck = False
-        elif self.attrib != ("{'id': 'P1'}"):
+        elif str(self.attrib) != ("{'id': 'P1'}"):
             dataRecorder.completeCheck = True
+            #print(self.attrib, "NOPE!!")
 
 
     def FuncSwitch(self):
@@ -182,10 +189,10 @@ def ScatterPlot():
     d = 0
     for data in corpusData:
         p = 0
-        for phrase in corpusData[d].phrases:
+        for phrase in corpusData[d].sections:
             x.append(d + 1)
             y.append(p + 1)
-            z.append(corpusData[d].phrases[p].measures)
+            z.append(corpusData[d].sections[p].measures)
             p += 1
         d += 1
 
