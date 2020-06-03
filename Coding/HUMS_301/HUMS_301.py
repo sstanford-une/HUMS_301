@@ -16,6 +16,7 @@ import ntpath
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+import pandas as pandas
 
 
 
@@ -26,7 +27,7 @@ class FrottalaObject:
         self.sections = sections
         self.phrases = phrases
 
-        print(self.title, "by", self.composer, "has been recorded.")
+        #print(self.title, "by", self.composer, "has been recorded.")
 
 class SectionObject:
     def __init__(self):
@@ -79,7 +80,7 @@ class SwitchFunction:
 
     def Info(self):
         if self.data != ('Petrucci'):
-            print(self.data)
+            #print(self.data)
             dataRecorder.title = self.data
         elif self.data == ('Petrucci'):
             dataRecorder.composer = self.data
@@ -117,6 +118,8 @@ class SwitchFunction:
         if dataRecorder.pitchCheck == True:
             dataRecorder.sectionObject.duration += int(self.data)
             dataRecorder.phraseObject.duration += int(self.data)
+            dataRecorder.sectionObject.notes += 1
+            dataRecorder.phraseObject.notes += 1
             dataRecorder.pitchCheck = False
 
     def PuncSwitch(self):
@@ -181,33 +184,96 @@ def ProcessCorpus():
 
     print('Corpus procssing compelete!')
 
-def ScatterPlot():
+def SectionScatterPlot():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-
-    x, y, z = [], [], []
+    data, phrase = None, None
+    frottala, sections, phrases, measures, notes, duration, syllables = [], [], [], [], [], [], []
     d = 0
     for data in corpusData:
-        p = 0
+        s = 0
         for phrase in corpusData[d].sections:
-            x.append(d + 1)
-            y.append(p + 1)
-            z.append(corpusData[d].sections[p].measures)
-            p += 1
+            frottala.append(d + 1)
+            sections.append(s + 1)
+            phrases.append(corpusData[d].sections[s].phrases)
+            measures.append(corpusData[d].sections[s].measures)
+            notes.append(corpusData[d].sections[s].notes)
+            duration.append(corpusData[d].sections[s].duration)
+            syllables.append(corpusData[d].sections[s].syllables)
+            s += 1
         d += 1
 
-    print(x)
-    ax.scatter(x, y, z, c='r', marker='o')
+    #print(x)
+    #ax.scatter(frottala, sections, phrases, c='b', marker='o')
+    ax.scatter(measures, sections, frottala, c='g', marker='o')
+    #ax.scatter(frottala, sections, notes, c='y', marker='o')
+    #ax.scatter(frottala, sections, duration, c='c', marker='o')
+    #ax.scatter(frottala, sections, syllables, c='m', marker='o')
 
-    ax.set_xlabel('Frottala')
+    ax.set_xlabel('Measures')
     ax.set_ylabel('Section')
-    ax.set_zlabel('Syllables')
+    ax.set_zlabel('Frottala')
 
     plt.show()
+
+
+def WriteSectionData():
+    targetFile, columns, writer, frottala = None, None, None, None
+    num, dec = 0, float(0)
+
+    with open('scetionDataSet.csv', 'w', newline = '') as targetFile:
+        columns = ['Section', 'Phrases', 'Measures', 'Notes', 'Duration', 'Syllables']
+        writer = csv.DictWriter(targetFile, fieldnames = columns)
+
+        writer.writeheader()
+
+        for frottala in corpusData:
+            num += 1
+            for value in frottala.sections:
+                dec += 0.01
+                writer.writerow({
+                    'Section' : float(num + dec),
+                    'Phrases' : value.phrases,
+                    'Measures' : value.measures,
+                    'Notes' : value.notes,
+                    'Duration' : value.duration,
+                    'Syllables' : value.syllables
+                })
+            dec = 0
+
+def WritePhraseData():
+    targetFile, columns, writer, frottala = None, None, None, None
+    num, dec = 0, float(0)
+
+    with open('phraseDataSet.csv', 'w', newline = '') as targetFile:
+        columns = ['Phrase', 'Measures', 'Notes', 'Duration', 'Syllables']
+        writer = csv.DictWriter(targetFile, fieldnames = columns)
+
+        writer.writeheader()
+
+        for frottala in corpusData:
+            num += 1
+            for value in frottala.phrases:
+                dec += 0.01
+                writer.writerow({
+                    'Phrase' : float(num + dec),
+                    'Measures' : value.measures,
+                    'Notes' : value.notes,
+                    'Duration' : value.duration,
+                    'Syllables' : value.syllables
+                })
+            dec = 0
+
+
+
+
+
 
 global corpusData
 corpusData = []
 ProcessCorpus()
-ScatterPlot()
+#SectionScatterPlot()
+WriteSectionData()
+WritePhraseData()
 
 #%%
