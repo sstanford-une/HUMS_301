@@ -1,5 +1,3 @@
-#%%
-
 # Functions and Packages imported
 import os
 import string
@@ -163,6 +161,7 @@ class SwitchFunction:
 
     def RecordPhrase (self):
         dataRecorder.phrases.append(dataRecorder.phraseObject)
+        dataRecorder.sectionObject.phrases += 1
         dataRecorder.phraseObject = PhraseObject()
         dataRecorder.lyricCheck, dataRecorder.pitchCheck, dataRecorder.puncCheck, dataRecorder.capsCheck = False, False, False, False
     
@@ -276,4 +275,3 @@ ProcessCorpus()
 WriteSectionData()
 WritePhraseData()
 
-#%%
