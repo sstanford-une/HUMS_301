@@ -123,7 +123,7 @@ class SwitchFunction:
     def PuncSwitch(self):
         punctuation = set(string.punctuation)
         if any(char in punctuation for char in self.data):
-            dataRecorder.puncCheck = True            
+            dataRecorder.puncCheck = True
 
     def CapsCheck(self):
         if self.data.islower() == False and dataRecorder.puncCheck == True:
@@ -204,24 +204,24 @@ def SectionScatterPlot():
 
     #print(x)
     #ax.scatter(frottala, sections, phrases, c='b', marker='o')
-    ax.scatter(measures, sections, frottala, c='g', marker='o')
+    ax.scatter(phrases, frottala, syllables, c='g', marker='o')
     #ax.scatter(frottala, sections, notes, c='y', marker='o')
     #ax.scatter(frottala, sections, duration, c='c', marker='o')
     #ax.scatter(frottala, sections, syllables, c='m', marker='o')
 
-    ax.set_xlabel('Measures')
-    ax.set_ylabel('Section')
-    ax.set_zlabel('Frottala')
+    ax.set_xlabel('phrases')
+    ax.set_ylabel('frottala')
+    ax.set_zlabel('syllables')
 
     plt.show()
 
 
 def WriteSectionData():
     targetFile, columns, writer, frottala = None, None, None, None
-    num, dec = 0, float(0)
+    num, dec = 0, 0
 
-    with open('scetionDataSet.csv', 'w', newline = '') as targetFile:
-        columns = ['Section', 'Phrases', 'Measures', 'Notes', 'Duration', 'Syllables']
+    with open('sectionDataSet.csv', 'w', newline = '') as targetFile:
+        columns = ['Frottala', 'Section', 'Phrases', 'Measures', 'Notes', 'Duration', 'Syllables']
         writer = csv.DictWriter(targetFile, fieldnames = columns)
 
         writer.writeheader()
@@ -229,9 +229,10 @@ def WriteSectionData():
         for frottala in corpusData:
             num += 1
             for value in frottala.sections:
-                dec += 0.01
+                dec += 1
                 writer.writerow({
-                    'Section' : float(num + dec),
+                    'Frottala' : num,
+                    'Section' : dec,
                     'Phrases' : value.phrases,
                     'Measures' : value.measures,
                     'Notes' : value.notes,
@@ -242,10 +243,10 @@ def WriteSectionData():
 
 def WritePhraseData():
     targetFile, columns, writer, frottala = None, None, None, None
-    num, dec = 0, float(0)
+    num, dec = 0, 0
 
     with open('phraseDataSet.csv', 'w', newline = '') as targetFile:
-        columns = ['Phrase', 'Measures', 'Notes', 'Duration', 'Syllables']
+        columns = ['Frottala', 'Phrase', 'Measures', 'Notes', 'Duration', 'Syllables']
         writer = csv.DictWriter(targetFile, fieldnames = columns)
 
         writer.writeheader()
@@ -253,9 +254,10 @@ def WritePhraseData():
         for frottala in corpusData:
             num += 1
             for value in frottala.phrases:
-                dec += 0.01
+                dec += 1
                 writer.writerow({
-                    'Phrase' : float(num + dec),
+                    'Frottala' : num,
+                    'Phrase' : dec,
                     'Measures' : value.measures,
                     'Notes' : value.notes,
                     'Duration' : value.duration,
@@ -271,7 +273,7 @@ def WritePhraseData():
 global corpusData
 corpusData = []
 ProcessCorpus()
-#SectionScatterPlot()
-WriteSectionData()
-WritePhraseData()
+SectionScatterPlot()
+#WriteSectionData()
+#WritePhraseData()
 
