@@ -197,7 +197,6 @@ class PartAnalyser:
         self.intervalLists = []
 
     def CompileLists(self):
-        
         tarPart = 0
         partPitches = []
         if tarPart < 4:
@@ -215,7 +214,7 @@ class PartAnalyser:
             tarPart += 1
         else:
             tarPart = 0
-        #self.MeasureIntervals()
+        self.MeasureIntervals()
 
     def MeasureIntervals(self):
         part1, part2, part3, part4 = self.partLists[0], self.partLists[1], self.partLists[2], self.partLists[3]
@@ -257,8 +256,6 @@ def ProcessCorpus():
         parser.feed(xmlString)
         parser.close()
         
-    # for frottala in somewhere longest data = column amount
-    # put in excel using biggest values
 
     print('Corpus procssing compelete!')
 
@@ -357,7 +354,7 @@ class ChordAnalyser:
             while target < 5:
                 rList.append(chords[target].root())
                 target += 1
-            #print(rootList)
+            #print(rList)
             self.corpusRootLists.append(rList)
             pTar1, pTar2 = 0, 1
             while pTar2 < 5:
